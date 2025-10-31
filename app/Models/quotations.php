@@ -30,5 +30,4 @@ class Quotations extends Model
     {
         return $this->belongsToMany(QuotationTerm::class, 'quotation_term', 'quotation_id', 'term_id');
     }
-
 }

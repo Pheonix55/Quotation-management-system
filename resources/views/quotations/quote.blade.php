@@ -33,6 +33,12 @@
             color: #2b2b2b;
         }
 
+        .quote-card h6 {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
         .quote-card p {
             font-size: 0.9rem;
             color: #555;
@@ -59,36 +65,28 @@
             justify-content: center;
             align-items: center;
             min-height: 80vh;
-            flex-direction: column;
+        }
+
+        .card-body {
+            justify-content: space-evenly;
         }
     </style>
 
     <div class="container card-container">
-
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show w-100 text-center mb-4" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show w-100 text-center mb-4" role="alert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
         <div class="quote-card">
-            <a href="{{ route('quote') }}">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Get a Quote</h5>
-                    <p class="card-text">
-                        Add your products and terms to generate a customized quotation instantly.
-                    </p>
-                    <span class="quote-btn">Create Quotation</span>
-                </div>
-            </a>
+            <div class="card-header">
+                <h5>Your Quote is Ready</h5>
+            </div>
+            <div class="card-body text-center d-flex ">
+                <a href="{{ route('quotations.download-pdf', $id) }}">
+                    <span class="quote-btn">Download</span>
+                </a>
+                <a href="{{ route('quotations.view-pdf', $id) }}">
+
+                    <span class="quote-btn">View</span>
+                </a>
+            </div>
         </div>
+
     </div>
 @endsection

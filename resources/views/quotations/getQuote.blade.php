@@ -1,40 +1,73 @@
-@extends('layouts.app')
+@extends('layouts.general')
 
 @section('content')
-    <div class="card" style="width: 100%;">
-        <form action="{{ route('quote.store') }}" method="POST" enctype="multipart/form-data" id="quoteForm">
-            @csrf
-            <div class="row p-3">
+    <style>
+        .wrapper {
+            width: 80%;
+            margin: 100 auto;
 
+        }
+    </style>
+    <div class="card wrapper">
+        <form action="{{ route('quote.store') }}" method="POST" enctype="multipart/form-data" id="quoteForm" novalidate>
+            @csrf
+            <div class="row p-3 ">
+
+                {{-- Customer --}}
                 <div class="col-md-6 mb-3">
-                    <label for="customers" class="form-label">Select Customers</label>
-                    <select name="customer_id" id="customers" class="form-select"required>
+                    <label for="customers" class="form-label">Select Customer</label>
+                    <select name="customer_id" id="customers" class="form-select @error('customer_id') is-invalid @enderror"
+                        required>
                         <option disabled selected>Select</option>
                         @foreach ($customers as $customer)
-                            <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                {{ $customer->name }}
+                            </option>
                         @endforeach
                     </select>
+                    @error('customer_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
-
+                {{-- Date --}}
                 <div class="col-md-6 mb-3">
                     <label for="date" class="form-label">Date</label>
-                    <input type="date" class="form-control" name="quotation_date" id="date" required>
+                    <input type="date" class="form-control @error('quotation_date') is-invalid @enderror"
+                        name="quotation_date" id="date" required
+                        value="{{ old('quotation_date') ?? now()->format('Y-m-d') }}">
+                    @error('quotation_date')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
+                {{-- Time --}}
                 <div class="col-md-6 mb-3">
                     <label for="time" class="form-label">Time</label>
-                    <input type="time" class="form-control" name="quotation_time" id="time" required>
+                    <input type="time" class="form-control @error('quotation_time') is-invalid @enderror"
+                        name="quotation_time" id="time" required
+                        value="{{ old('quotation_time') ?? now()->format('H:i') }}">
+                    @error('quotation_time')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label for="validity_date" class="form-label">Validity Date</label>
-                    <input type="date" class="form-control" name="validity_date" id="validity_date" required>
+                    <input type="date" class="form-control @error('validity_date') is-invalid @enderror"
+                        name="validity_date" id="validity_date" required value="{{ old('validity_date') }}">
+                    @error('validity_date')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12 mb-3">
                     <label for="notes" class="form-label">Notes (optional)</label>
-                    <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Add any notes if necessary..."></textarea>
+                    <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" rows="3"
+                        placeholder="Add any notes if necessary...">{{ old('notes') }}</textarea>
+                    @error('notes')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <input type="hidden" name="selected_customers" id="selected_customers">
@@ -45,107 +78,3 @@
             </div>
         </form>
     </div>
-
-
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownMenu = document.querySelector('#prodDropdown');
-            const checkboxes = dropdownMenu.querySelectorAll('.form-check-input');
-            const hiddenInput = document.querySelector('#selected_customers');
-            const form = document.querySelector('#quoteForm');
-
-            dropdownMenu.addEventListener('click', function(e) {
-                if (e.target.classList.contains('form-check-input')) {
-                    e.stopPropagation();
-                }
-            });
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const selectedIds = Array.from(checkboxes)
-                        .filter(cb => cb.checked)
-                        .map(cb => cb.value);
-                    hiddenInput.value = JSON.stringify(selectedIds);
-                });
-            });
-
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(form);
-                formData.append('selected_customers', hiddenInput.value);
-                fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log('Redirecting to:', data.redirectRoute);
-                            window.location.href = data.redirectRoute;
-                        } else if (data.errors) {
-                            console.error('Validation errors:', data.errors);
-                            alert('Please fix validation errors and try again.');
-                        } else {
-                            alert(data.message || 'Something went wrong');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to create quotation.');
-                    });
-            });
-        });
-    </script> --}}
-@endsection
-
-{{-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dropdownMenuTerm = document.querySelector('#termDropdown');
-
-        dropdownMenuTerm.addEventListener('click', function(e) {
-            if (e.target.classList.contains('form-check-input')) {
-                e.stopPropagation();
-            }
-        });
-
-        const dropdownToggle = document.querySelector('#drop_down_toggle_terms');
-        const checkboxesTerm = dropdownMenuTerm.querySelectorAll('.form-check-input');
-        checkboxesTerm.forEach(
-            checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const selectedTerms = Array.from(checkboxesTerm)
-                        .filter(cb => cb.checked)
-                        .map(cb => cb.nextElementSibling.getAttribute('data-id'));
-                    console.log(selectedTerms);
-
-                    console.log(selectedTerms);
-                });
-            });
-    });
-</script> --}}
-{{-- <div class="col-md-6 mb-3">
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                                aria-expanded="true" onclick="openDropdown()" id="drop_down_toggle_terms">
-                                Select terms
-                            </button>
-                            <ul class="dropdown-menu" id="termDropdown">
-                                @foreach ($terms as $term)
-                                    <li>
-                                        <div class="form-check dropdown-item">
-                                            <input class="form-check-input" type="checkbox" value="{{ $term->id }}"
-                                                id="option1">
-                                            <label class="form-check-label" for="option1" data-id="{{ $product->id }}">
-                                                {{ $term->statements }}
-                                            </label>
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div> --}}

@@ -11,8 +11,8 @@
                     <p><strong>Date:</strong> {{ $quotation->quotation_date }}</p>
                     <p><strong>Validity:</strong> {{ $quotation->validity_date }}</p>
                     <p><strong>Status:</strong>
-                        <span class="badge {{ $quotation->status == 0 ? 'bg-warning' : 'bg-success' }}">
-                            {{ $quotation->status == 0 ? 'Incomplete' : 'Completed' }}
+                        <span class="badge {{ $quotation->is_completed == 0 ? 'bg-warning' : 'bg-success' }}">
+                            {{ $quotation->is_completed == 0 ? 'Incomplete' : 'Completed' }}
                         </span>
                     </p>
                 </div>
@@ -44,14 +44,8 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-md-4">
-                    <label for="productSearch" class="form-label">Search Product (Name or Barcode)</label>
-                    <input type="text" id="productSearch" class="form-control"
-                        placeholder="Type product name or barcode...">
-                </div>
+
                 <div class="col-md-8">
-
-
                     <label for="productSelect" class="form-label">Select Products</label>
                     <select class="form-select" id="productSelect" multiple>
                         @foreach ($products as $product)
@@ -87,7 +81,7 @@
         </form>
     </div>
 
-    <script>
+    {{-- <script>
         const searchInput = document.getElementById('productSearch');
         const productSelect = document.getElementById('productSelect');
         let searchTimeout = null;
@@ -130,6 +124,71 @@
             }, 400);
 
         });
+    </script> --}}
+
+    <script>
+        const searchInput = document.getElementById('productSearch');
+        const productSelect = document.getElementById('productSelect');
+        let searchTimeout = null;
+        let searchResults = [];
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(searchTimeout);
+
+            searchTimeout = setTimeout(() => {
+                if (!query) {
+                    productSelect.innerHTML = '';
+                    return;
+                }
+
+                fetch(`/search-products?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(products => {
+                        searchResults = products; // save for Enter key use
+                        productSelect.innerHTML = '';
+
+                        if (products.length === 0) {
+                            const option = document.createElement('option');
+                            option.textContent = 'No products found';
+                            option.disabled = true;
+                            productSelect.appendChild(option);
+                            return;
+                        }
+
+                        products.forEach(p => {
+                            const option = document.createElement('option');
+                            option.value = p.id;
+                            option.textContent = `${p.name}`;
+                            option.dataset.price = p.sale_price;
+                            option.dataset.gst = p.gst;
+                            productSelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => console.error('Error fetching products:', err));
+            }, 400);
+        });
+
+        // ✅ Press Enter to auto-add first product
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (searchResults.length > 0) {
+                    const first = searchResults[0];
+                    const option = [...productSelect.options].find(opt => opt.value == first.id);
+                    if (option) {
+                        option.selected = true;
+                        productSelect.dispatchEvent(new Event('change')); // trigger add logic
+                        searchInput.value = ''; // clear input
+                        productSelect.innerHTML = ''; // clear dropdown
+                    }
+                }
+            }
+        });
     </script>
 
     <script>
@@ -161,44 +220,104 @@
                 });
             });
 
+            // function renderTable() {
+            //     tableBody.innerHTML = '';
+            //     Object.entries(selectedProducts).forEach(([id, prod]) => {
+            //         const row = document.createElement('tr');
+            //         row.setAttribute('data-prod-id', id);
+            //         row.setAttribute('data-total',
+            //             (prod.price * prod.quantity).toFixed(2)
+            //         )
+
+            //         row.innerHTML = `
+        //     <td>${prod.name}</td>
+        //     <td><input type="number" min="1" name="prod_quantity" class="prod_quantity_input"  value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
+        //     <td>${prod.price.toFixed(2)}</td>
+        //     <td>${prod.gst}%</td>
+        //     <td>${(prod.price * prod.quantity).toFixed(2)}</td>
+        //     <td><button class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
+        // `;
+            //         tableBody.appendChild(row);
+            //     });
+            //     updateHiddenInput();
+            // }
             function renderTable() {
                 tableBody.innerHTML = '';
+
                 Object.entries(selectedProducts).forEach(([id, prod]) => {
                     const row = document.createElement('tr');
                     row.setAttribute('data-prod-id', id);
-                    row.setAttribute('data-total',
-                        (prod.price * prod.quantity).toFixed(2)
-                    )
+                    row.setAttribute('data-total', (prod.price * prod.quantity).toFixed(2));
 
                     row.innerHTML = `
-                <td>${prod.name}</td>
-                <td><input type="number" min="1" name="prod_quantity" class="prod_quantity_input"  value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
-                <td>${prod.price.toFixed(2)}</td>
-                <td>${prod.gst}%</td>
-                <td>${(prod.price * prod.quantity).toFixed(2)}</td>
-                <td><button class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
-            `;
+            <td>${prod.name}</td>
+            <td>
+                <input type="number" min="1" name="prod_quantity"
+                       value="${prod.quantity}"
+                       class="form-control form-control-sm prod_quantity_input"
+                       data-id="${id}">
+            </td>
+            <td>${prod.price.toFixed(2)}</td>
+            <td>${prod.gst}%</td>
+            <td class="total-col">${(prod.price * prod.quantity).toFixed(2)}</td>
+            <td><button type="button" class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
+        `;
                     tableBody.appendChild(row);
                 });
+
                 updateHiddenInput();
             }
+            // tableBody.addEventListener('input', e => {
+            //     if (e.target.classList.contains('qty-input')) {
+            //         const id = e.target.dataset.id;
+            //         const qty = parseInt(e.target.value);
+            //         if (qty > 0) {
+            //             selectedProducts[id].quantity = qty;
+            //             renderTable();
+            //         }
+            //     }
+            // });
 
+            // tableBody.addEventListener('click', e => {
+            //     if (e.target.classList.contains('remove-btn')) {
+            //         const id = e.target.dataset.id;
+            //         delete selectedProducts[id];
+
+            //         renderTable();
+            //     }
+            // });
+
+            // ✅ update total without full rerender
             tableBody.addEventListener('input', e => {
-                if (e.target.classList.contains('qty-input')) {
+                if (e.target.classList.contains('prod_quantity_input')) {
                     const id = e.target.dataset.id;
                     const qty = parseInt(e.target.value);
+
                     if (qty > 0) {
                         selectedProducts[id].quantity = qty;
-                        renderTable();
+
+                        // only update total cell, not entire table
+                        const row = e.target.closest('tr');
+                        const total = (selectedProducts[id].price * qty).toFixed(2);
+                        selectedProducts[id].total = total;
+                        row.querySelector('.total-col').textContent = total;
+
+                        updateHiddenInput();
                     }
                 }
             });
 
+            // ✅ delete row from DOM only
             tableBody.addEventListener('click', e => {
                 if (e.target.classList.contains('remove-btn')) {
                     const id = e.target.dataset.id;
+
                     delete selectedProducts[id];
-                    renderTable();
+
+                    const row = e.target.closest('tr');
+                    if (row) row.remove();
+
+                    updateHiddenInput();
                 }
             });
 

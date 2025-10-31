@@ -19,7 +19,7 @@
 
 
 
-    <style>
+    {{-- <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100..900&display=swap');
 
         :root {
@@ -320,146 +320,24 @@
             margin-bottom: 20px;
             padding: 40px 20px;
         }
-    </style>
+    </style> --}}
 
 
 </head>
 
 <body class="dark">
 
-    <nav id="sidebar">
-        <ul>
-            <li class="header_title">
-                <span class="logo">
-                    QMS
-                </span>
-                <button id="toggle-sidebar-btn" onclick="toggleSidebar()"><svg xmlns="http://www.w3.org/2000/svg"
-                        height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f">
-                        <path
-                            d="M440-240 200-480l240-240 56 56-183 184 183 184-56 56Zm264 0L464-480l240-240 56 56-183 184 183 184-56 56Z" />
-                    </svg></button>
-            </li>
 
-            <li class="">
-                <a href="{{ route('dashboard') }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#1f1f1f">
-                        <path
-                            d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h440l200 200v440q0 33-23.5 56.5T760-120H200Zm0-80h560v-400H600v-160H200v560Zm80-80h400v-80H280v80Zm0-320h200v-80H280v80Zm0 160h400v-80H280v80Zm-80-320v160-160 560-560Z" />
-                    </svg><span>Dashboard</span></a>
-            </li>
-            <li>
-                <button class="dropdown-btn" onclick="toggleSubmenu(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#1f1f1f">
-                        <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-                    </svg>
-                    <span>create</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#1f1f1f">
-                        <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z" />
-                    </svg>
-                </button>
-                <ul class="sub-menu">
-                    <div>
-                        <li>
-                            <a href="{{ route('customer.index') }}">Customer</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('product.index') }}">products</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('terms.index') }}">terms & conditions</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('category.index') }}">Categories</a>
-                        </li>
-                    </div>
-                </ul>
-            </li>
-            <li class="">
-                <a href="{{ route('logout') }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#1f1f1f">
-                        <path
-                            d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h440l200 200v440q0 33-23.5 56.5T760-120H200Zm0-80h560v-400H600v-160H200v560Zm80-80h400v-80H280v80Zm0-320h200v-80H280v80Zm0 160h400v-80H280v80Zm-80-320v160-160 560-560Z" />
-                    </svg><span>logout</span></a>
-            </li>
-        </ul>
-    </nav>
     <main>
         @yield('content')
 
     </main>
 
-    <script>
-        setTimeout(() => {
-            const alert = document.querySelector('.alert');
-            if (alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
-        }, 4000);
-    </script>
-    <script>
-        const sidebar = document.getElementById('sidebar');
-
-        function toggleSubmenu(element) {
-            const submenu = element.nextElementSibling;
-            const isOpen = submenu.classList.contains(
-                'show'
-            );
-            closeAllSubmenu();
-
-            if (!isOpen) {
-                if (sidebar.getAttribute('data-style') == 'icon-only') {
-                    sidebar.setAttribute('data-style', 'full');
-                }
-                element.classList.add('active');
-                element.classList.add('rotate');
-                submenu.classList.add('show');
-            }
-        }
-
-        function closeAllSubmenu() {
-            document.querySelectorAll('.dropdown-btn').forEach(el => el.classList.remove('rotate'));
-            document.querySelectorAll('#sidebar > ul > li').forEach(li => li.classList.remove('active'));
-            document.querySelectorAll('#sidebar > ul > li > button').forEach(li => li.classList.remove('active'));
-
-            sidebar
-                .querySelectorAll('.sub-menu')
-                .forEach(el => el.classList.remove('show'));
-        }
-
-        function toggleSidebar() {
-            closeAllSubmenu()
-            if (sidebar.getAttribute('data-style') == 'icon-only') {
-                sidebar.setAttribute('data-style', 'full');
-            } else {
-                sidebar.setAttribute('data-style', 'icon-only');
-
-            }
-        }
-
-
-        document.querySelectorAll('#sidebar > ul > li > a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                document.querySelectorAll('#sidebar > ul > li').forEach(li => li.classList.remove(
-                    'active'));
-                this.parentElement.classList.add('active');
-            });
-        });
-    </script>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
+    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
     @include('partials.toaster_config')
-    @include('partials.select2')
-
 </body>
 
 </html>

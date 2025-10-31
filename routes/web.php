@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/terms/create', [TermsController::class, 'create'])->name('terms.create');
     Route::put('/terms/update/{id}', [TermsController::class, 'update'])->name('terms.update');
     Route::delete('/terms/delete', [TermsController::class, 'destroy'])->name('terms.destroy');
+    Route::get('/terms/duplicate/remove', [TermsController::class, 'removeDuplicateTerms'])->name('terms.remove-duplicate');
 
 
     Route::get('/category', [CategoryController::class, 'index'])->name('category.index');

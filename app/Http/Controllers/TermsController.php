@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Terms;
 use Auth;
 use Illuminate\Http\Request;
-use Storage;
 use Throwable;
+use Illuminate\Support\Facades\DB;
 
 class TermsController extends Controller
 {
@@ -27,7 +27,6 @@ class TermsController extends Controller
             ]);
             $data['customer_id'] = Auth::user()->id;
             $term = Terms::create($data);
-            // dd($request->all(), $data, $term);
             return redirect()->route('terms.index')->with('success', 'term created successfully');
         } catch (Throwable $th) {
             dd($th->getMessage());
@@ -50,7 +49,6 @@ class TermsController extends Controller
                 'statements' => 'required|string',
             ]);
 
-            // dd($request->all(), $term, $data);
             $term->statements = $data['statements'];
             $term->save();
             return redirect()->route('terms.index')->with('success', 'term updated successfully');
@@ -77,4 +75,38 @@ class TermsController extends Controller
             dd($th->getMessage());
         }
     }
+
+
+    public function removeDuplicateTerms()
+    {
+        $duplicates = Terms::select(
+            DB::raw('LOWER(statements) as normalized_statement'),
+            'customer_id',
+            DB::raw('COUNT(*) as count')
+        )
+            ->groupBy('normalized_statement', 'customer_id')
+            ->having('count', '>', 1)
+            ->get();
+
+        $deletedCount = 0;
+
+        foreach ($duplicates as $dup) {
+            $idsToDelete = Terms::whereRaw('LOWER(statements) = ?', [$dup->normalized_statement])
+                ->where('customer_id', $dup->customer_id)
+                ->orderBy('id', 'asc')
+                ->pluck('id')
+                ->slice(1); // Skip first record (keep one unique copy)
+
+            if ($idsToDelete->isNotEmpty()) {
+                Terms::whereIn('id', $idsToDelete)->delete();
+                $deletedCount += $idsToDelete->count();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Removed $deletedCount duplicate term(s) (case-insensitive)."
+        ]);
+    }
+
 }

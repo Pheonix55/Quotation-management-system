@@ -104,15 +104,7 @@
 
 <body>
     <div class="card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-
-                <a href="{{ route('quotations.download-pdf', $quotation->id) }}" class="btn btn-primary btn-sm">
-                    <i class=""></i> Download PDF
-                </a>
-            </div>
-        </div>
-        <!-- Header Section -->
+    
         <div class="header">
             <div class="company-info">
                 <h1>Quotation Management System</h1>
@@ -152,7 +144,6 @@
 
         <div class="section">
             <div class="section-title">PRODUCTS & SERVICES</div>
-
             <table class="table">
                 <thead>
                     <tr>
@@ -192,7 +183,6 @@
                             $gstAmount = ($product->gst / 100) * $amount;
                             $totalGst += $gstAmount;
                         @endphp
-
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $product->name }}</td>
@@ -203,9 +193,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-
             </table>
-
         </div>
 
         <div class="total-section">
@@ -237,7 +225,6 @@
         <div class="notes">
             <strong>Terms:</strong><br>
             <ul>
-
                 @foreach ($quotationTerms as $term)
                     @if ($term->custom_text == null)
                         <li>{{ $term->statements }}</li>
@@ -248,7 +235,7 @@
             </ul>
         </div>
 
-        <div class="footer">
+        <div class="footer" style="width: max-content">
             <p>Thank you for your business! This quotation is valid until
                 {{ \Carbon\Carbon::parse($quotation->validity_date)->format('F d, Y') }}</p>
             <p>For any queries, please contact us at info@company.com or call (123) 456-7890</p>

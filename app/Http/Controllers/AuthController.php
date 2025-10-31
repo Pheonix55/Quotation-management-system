@@ -20,48 +20,34 @@ class AuthController extends Controller
     }
     public function login(Request $request)
     {
-        try {
-            $data = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|min:8',
-            ]);
-            Auth::attempt(['email' => $data['email'], 'password' => $data['password']]);
-            return redirect()->route('dashboard');
-        } catch (Throwable $th) {
-            dd($th->getMessage());
+        // Validate input
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8'],
+        ]);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->route('dashboard')->with('success', 'Login successful!');
         }
-
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
     }
     public function register(Request $request)
     {
-        try {
-            // dd($request->all());
-            $data = $request->validate([
-                'name' => 'required|string',
-                'email' => 'required|email',
-                'password' => 'required|min:8',
-                'password_confirmation' => 'required|min:8',
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8|confirmed',
+        ]);
 
-            if (
-                $data['password'] == $data['password_confirmation']
-            ) {
+        $validatedData['password'] = Hash::make($validatedData['password']);
 
-                $data['password'] = Hash::make($data['password']);
-                $user = User::create($data);
-                // dd($user);
-                return redirect()->route('login')->with('success', 'registration completed');
-            } else {
-                return back()->with('error', 'password does not match');
-            }
+        $user = User::create($validatedData);
 
-        } catch (Throwable $th) {
-            dd($th->getMessage());
+        Auth::login($user);
 
-        }
-
-
-
+        return redirect()->route('dashboard')->with('success', 'Registration completed successfully.');
     }
     public function forgetPassword(Request $request)
     {

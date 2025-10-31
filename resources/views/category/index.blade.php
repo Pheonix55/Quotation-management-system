@@ -15,6 +15,7 @@
                         <tr>
                             <th>#</th>
                             <th>name</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody>

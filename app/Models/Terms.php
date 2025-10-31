@@ -11,6 +11,4 @@ class Terms extends Model
     {
         return $this->belongsToMany(Quotations::class, 'quotation_term', 'term_id', 'quotation_id');
     }
-
-
 }
