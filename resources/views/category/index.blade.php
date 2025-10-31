@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Products')
+@section('title', 'Customers')
 
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold">Products</h4>
-            <a href="{{ route('product.create') }}" class="btn btn-primary">+ Add Product</a>
+            <h4 class="fw-bold">Category</h4>
+            <a href="{{ route('category.create') }}" class="btn btn-primary">+ New Category</a>
         </div>
 
         <div class="card shadow-sm border-0 bg-theme">
@@ -14,36 +14,27 @@
                     <thead class="">
                         <tr>
                             <th>#</th>
-                            <th>barCode</th>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Sale Price (Rs.)</th>
-                            <th>Cost Price (Rs.)</th>
-                            <th>GST %</th>
-                            <th>Actions</th>
+                            <th>name</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (empty($products))
+                        @if (empty($terms))
 
-                            <td>no products yet!</td>
+                            <td>no Category yet!</td>
                         @else
-                            @foreach ($products as $product)
+                            @foreach ($terms as $term)
                                 <tr>
+                                    {{-- @dd($term) --}}
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $product->bar_code }}</td>
-                                    <td>{{ $product->name }}</td>
-                                    <td>{{ $product->category->name ?? '—' }}</td>
-                                    <td>{{ $product->sale_price }}</td>
-                                    <td>{{ $product->cost_price }}</td>
-                                    <td>{{ $product->gst }}</td>
+
+                                    <td>{{ $term->name }}</td>
 
                                     <td>
-                                        <a href="{{ route('product.edit', $product->id) }}"
+                                        <a href="{{ route('category.edit', $term->id) }}"
                                             class="btn btn-sm btn-warning">Edit</a>
-                                        <form action="{{ route('product.destroy') }}" method="POST" class="d-inline">
+                                        <form action="{{ route('category.destroy') }}" method="POST" class="d-inline">
                                             @csrf @method('DELETE')
-                                            <input type="number" value="{{ $product->id }}" name="id"
+                                            <input type="number" value="{{ $term->id }}" name="id"
                                                 style="display: none">
                                             <button class="btn btn-sm btn-danger"
                                                 onclick="return confirm('Delete this product?')">Delete</button>

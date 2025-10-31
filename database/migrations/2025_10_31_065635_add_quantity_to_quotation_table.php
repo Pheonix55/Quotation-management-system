@@ -10,13 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('quotation_term', function (Blueprint $table) {
-            $table->id();
-            $table->integer('quotation_id');
-            $table->text('custom_text')->nullable();
-
-            $table->integer('term_id');
-            $table->timestamps();
+        Schema::table('quotations', function (Blueprint $table) {
+            $table->json('quantity');
         });
     }
 
@@ -25,6 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('quotation_term');
+        Schema::table('products', function (Blueprint $table) {
+            //
+        });
     }
 };

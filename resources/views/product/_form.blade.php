@@ -9,15 +9,15 @@
         <label class="form-label">Category</label>
         <select name="category_id" class="form-select" required>
             <option value="">-- Select Category --</option>
-            <option value="1">1</option>
+            {{-- <option value="1">1</option>
             <option value="2">2</option>
-            <option value="3">3</option>
-            {{-- @foreach ($categories as $category)
-                <option value="{{ $category->id }}"
-                    {{ old('category_id', $product->category_id ?? '') == $category->id ? 'selected' : '' }}>
-                    {{ $category->name }}
+            <option value="3">3</option> --}}
+            @foreach ($category as $cat)
+                <option value="{{ $cat->id }}"
+                    {{ old('category_id', $product->category_id ?? '') == $cat->id ? 'selected' : '' }}>
+                    {{ $cat->name }}
                 </option>
-            @endforeach --}}
+            @endforeach
         </select>
     </div>
 

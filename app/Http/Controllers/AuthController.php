@@ -25,9 +25,7 @@ class AuthController extends Controller
                 'email' => 'required|email',
                 'password' => 'required|min:8',
             ]);
-            // dd($request->all(), $data);
             Auth::attempt(['email' => $data['email'], 'password' => $data['password']]);
-            // dd(Auth::user());
             return redirect()->route('dashboard');
         } catch (Throwable $th) {
             dd($th->getMessage());
@@ -37,7 +35,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
-            dd($request->all());
+            // dd($request->all());
             $data = $request->validate([
                 'name' => 'required|string',
                 'email' => 'required|email',
@@ -52,7 +50,7 @@ class AuthController extends Controller
                 $data['password'] = Hash::make($data['password']);
                 $user = User::create($data);
                 // dd($user);
-                return redirect()->route('loginView')->with('success', 'registration completed');
+                return redirect()->route('login')->with('success', 'registration completed');
             } else {
                 return back()->with('error', 'password does not match');
             }
@@ -71,6 +69,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('loginView');
+        return redirect()->route('login');
     }
 }

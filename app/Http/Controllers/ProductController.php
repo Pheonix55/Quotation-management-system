@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Auth;
 use Illuminate\Http\Request;
@@ -12,12 +13,13 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->paginate(15);
+        $products = Product::latest()->with('category')->paginate(15);
         return view('product.index', compact('products'));
     }
     public function create()
     {
-        return view('product.create');
+        $category = Category::all();
+        return view('product.create', compact('category'));
     }
     public function store(Request $request)
     {

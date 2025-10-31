@@ -36,20 +36,7 @@
 
         <form action="{{ route('quotation.saveProducts', $quotation->id) }}" method="POST" id="addProductsForm">
             @csrf
-            {{-- <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="productSelect" class="form-label">Select Products</label>
-                    <select class="form-select" id="productSelect" multiple>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}"
-                                data-gst="{{ $product->gst }}">
-                                {{ $product->name }} (Rs. {{ number_format($product->sale_price, 2) }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</small>
-                </div>
-            </div> --}}
+
             <div class="row mb-3">
 
 
@@ -110,10 +97,7 @@
 
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                if (query.length < 2) {
-                    productSelect.innerHTML = '';
-                    return;
-                }
+
 
                 fetch(`/search-products?q=${encodeURIComponent(query)}`, {
                         headers: {
@@ -182,9 +166,13 @@
                 Object.entries(selectedProducts).forEach(([id, prod]) => {
                     const row = document.createElement('tr');
                     row.setAttribute('data-prod-id', id);
+                    row.setAttribute('data-total',
+                        (prod.price * prod.quantity).toFixed(2)
+                    )
+
                     row.innerHTML = `
                 <td>${prod.name}</td>
-                <td><input type="number" min="1" value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
+                <td><input type="number" min="1" name="prod_quantity" class="prod_quantity_input"  value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
                 <td>${prod.price.toFixed(2)}</td>
                 <td>${prod.gst}%</td>
                 <td>${(prod.price * prod.quantity).toFixed(2)}</td>
@@ -221,10 +209,23 @@
             form.addEventListener('submit', e => {
                 e.preventDefault();
                 const rows = document.querySelectorAll('#selectedProductsTable tbody tr');
+                const qty = document.querySelectorAll('.prod_quantity_input');
                 const formData = new FormData(form);
+                const quantity = [];
+
+                qty.forEach(qty => {
+                    console.log(qty.value);
+                    formData.append('quantity[]', qty.value);
+
+                })
                 rows.forEach(row => {
+
                     const prodId = row.getAttribute('data-prod-id');
+                    const total = row.getAttribute('data-total');
+
                     formData.append('product_ids[]', prodId);
+                    formData.append('total[]', total);
+                    // alert('s')
                 });
 
                 fetch(form.action, {

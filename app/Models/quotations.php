@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class quotations extends Model
+class Quotations extends Model
 {
     protected $fillable = [
         'customer_id',
@@ -26,14 +26,9 @@ class quotations extends Model
         return $this->belongsToMany(Terms::class, 'quotation_term', 'quotation_id', 'term_id');
     }
 
-
-
-
-    public function updateTotal()
+    public function quotationTerms()
     {
-        $this->total = $this->items()->sum('subtotal');
-        $this->save();
+        return $this->belongsToMany(QuotationTerm::class, 'quotation_term', 'quotation_id', 'term_id');
     }
-
 
 }

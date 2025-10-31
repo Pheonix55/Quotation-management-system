@@ -63,7 +63,7 @@
 
         #sidebar[data-style="icon-only"] {
             padding: 5px;
-            width: 60px;
+            width: 85px;
 
         }
 
@@ -371,6 +371,9 @@
                         </li>
                         <li>
                             <a href="{{ route('terms.index') }}">terms & conditions</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('category.index') }}">Categories</a>
                         </li>
                     </div>
                 </ul>

@@ -152,14 +152,15 @@
 
         <div class="section">
             <div class="section-title">PRODUCTS & SERVICES</div>
+
             <table class="table">
                 <thead>
                     <tr>
                         <th width="5%">#</th>
                         <th width="45%">Product Description</th>
-                        <th width="10%" class="text-right">Quantity</th>
                         <th width="15%" class="text-right">Unit Price (Rs.)</th>
                         <th width="15%" class="text-right">GST %</th>
+                        <th width="10%" class="text-right">Quantity</th>
                         <th width="15%" class="text-right">Amount (Rs.)</th>
                     </tr>
                 </thead>
@@ -167,40 +168,44 @@
                     @php
                         $subtotal = 0;
                         $totalGst = 0;
+
+                        $quotation_price = json_decode($quotation->price, true);
+                        $quotation_qty = json_decode($quotation->quantity, true);
+
+                        $quotation_price = array_map(function ($p) {
+                            return is_array($p) ? (float) $p[0] : (float) $p;
+                        }, $quotation_price);
+
+                        $quotation_qty = array_map(function ($q) {
+                            return (int) $q;
+                        }, $quotation_qty);
                     @endphp
 
-                    @foreach ($products as $index => $product)
+                    @foreach ($products as $index => $item)
                         @php
-                            $quantity = $product->pivot->quantity ?? 1;
-                            $unitPrice = $product->sale_price;
-                            $gstRate = $product->gst;
-                            $gstAmount = ($unitPrice * $quantity * $gstRate) / 100;
-                            $totalAmount = $unitPrice * $quantity;
-                            $subtotal += $unitPrice * $quantity;
+                            $product = $item['product'];
+                            $price = $quotation_price[$index] ?? 0;
+                            $qty = $quotation_qty[$index] ?? 0;
+                            $amount = $price * $qty;
+
+                            $subtotal += $amount;
+                            $gstAmount = ($product->gst / 100) * $amount;
                             $totalGst += $gstAmount;
                         @endphp
+
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $product->name }}</td>
-                            <td class="text-right">{{ $quantity }}</td>
-                            <td class="text-right">{{ number_format($unitPrice, 2) }}</td>
-                            <td class="text-right">{{ number_format($gstRate, 2) }}%</td>
-                            <td class="text-right">{{ number_format($totalAmount, 2) }}</td>
+                            <td class="text-right">{{ number_format($price, 2) }}</td>
+                            <td class="text-right">{{ number_format($product->gst, 2) }}%</td>
+                            <td class="text-right">{{ $qty }}</td>
+                            <td class="text-right">{{ number_format($amount, 2) }}</td>
                         </tr>
                     @endforeach
-
-                    @for ($i = count($products); $i < 8; $i++)
-                        <tr>
-                            <td>{{ $i + 1 }}</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                        </tr>
-                    @endfor
                 </tbody>
+
             </table>
+
         </div>
 
         <div class="total-section">
@@ -209,17 +214,19 @@
                     <div class="col-6"><strong>Subtotal:</strong></div>
                     <div class="col-6 text-right">Rs. {{ number_format($subtotal, 2) }}</div>
                 </div>
-                {{-- <div class="row">
-                <div class="col-6"><strong>GST Total:</strong></div>
-                <div class="col-6 text-right">Rs. {{ number_format($totalGst, 2) }}</div>
-            </div>
-            <div class="row"
-                style="font-size: 14px; font-weight: bold; border-top: 1px solid #333; padding-top: 5px;">
-                <div class="col-6"><strong>GRAND TOTAL:</strong></div>
-                <div class="col-6 text-right">Rs. {{ number_format($quotation->total, 2) }}</div>
-            </div> --}}
+                <div class="row">
+                    <div class="col-6"><strong>Total GST:</strong></div>
+                    <div class="col-6 text-right">Rs. {{ number_format($totalGst, 2) }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>Grand Total:</strong></div>
+                    <div class="col-6 text-right">
+                        <strong>Rs. {{ number_format($subtotal + $totalGst, 2) }}</strong>
+                    </div>
+                </div>
             </div>
         </div>
+
 
         @if ($quotation->notes)
             <div class="notes">
@@ -227,6 +234,19 @@
                 {{ $quotation->notes }}
             </div>
         @endif
+        <div class="notes">
+            <strong>Terms:</strong><br>
+            <ul>
+
+                @foreach ($quotationTerms as $term)
+                    @if ($term->custom_text == null)
+                        <li>{{ $term->statements }}</li>
+                    @else
+                        <li>{{ $term->custom_text }}</li>
+                    @endif
+                @endforeach
+            </ul>
+        </div>
 
         <div class="footer">
             <p>Thank you for your business! This quotation is valid until

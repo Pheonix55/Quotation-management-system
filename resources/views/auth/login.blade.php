@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 <div class="auth-wrapper">
-    <form action="{{ route('login') }}" method="POST">
+    <form action="{{ route('loginPost') }}" method="POST">
 
         @csrf
         <div class="mb-3">

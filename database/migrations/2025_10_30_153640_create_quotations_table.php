@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->time('quotation_time')->nullable();
             $table->date('validity_date')->nullable();
             $table->text('notes')->nullable();
-            $table->decimal('total', 10, 2)->default(0);
+            $table->json('total')->nullable();
             $table->boolean('is_completed')->default(0);
             $table->json('product_ids')->nullable();
             $table->timestamps();

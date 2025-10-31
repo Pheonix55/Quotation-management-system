@@ -10,12 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('quotation_term', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->integer('quotation_id');
-            $table->text('custom_text')->nullable();
-
-            $table->integer('term_id');
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -25,6 +22,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('quotation_term');
+        Schema::dropIfExists('categories');
     }
 };

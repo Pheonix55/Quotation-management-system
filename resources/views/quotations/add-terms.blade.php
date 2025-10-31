@@ -27,7 +27,6 @@
         </form>
     </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="confirmTermsModal" tabindex="-1" aria-labelledby="confirmTermsLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -63,7 +62,6 @@
                     return;
                 }
 
-                // Build editable textareas for selected terms
                 selected.forEach(input => {
                     const label = document.querySelector(`label[for="${input.id}"]`).innerText;
                     const wrapper = document.createElement('div');
@@ -83,7 +81,6 @@
 
                 const formData = new FormData(form);
 
-                // Add customized terms text
                 const customTextareas = selectedContainer.querySelectorAll('textarea');
                 customTextareas.forEach(t => formData.append(t.name, t.value));
 
