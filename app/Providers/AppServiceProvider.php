@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Blade::if('admin', function () {
+            return !auth()->user()->isCustomer;
+        });
+        Blade::if('customer', function () {
+            return auth()->user()->isCustomer;
+        });
     }
 }

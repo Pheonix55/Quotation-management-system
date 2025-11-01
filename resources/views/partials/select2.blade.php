@@ -13,14 +13,13 @@
         const form = document.getElementById('addProductsForm');
         let selectedProducts = {};
 
-        // ✅ Initialize Select2
         $('#productSelect').select2({
             theme: 'bootstrap-5',
             placeholder: 'Search product...',
             ajax: {
                 url: '{{ route('products.search') }}',
                 dataType: 'json',
-                delay: 500, // debounce
+                delay: 500, 
                 data: params => ({
                     q: params.term
                 }),
@@ -37,7 +36,6 @@
             minimumInputLength: 2
         });
 
-        // ✅ When user selects or presses Enter on product
         $('#productSelect').on('select2:select', function(e) {
             const prod = e.params.data;
             if (!selectedProducts[prod.id]) {
@@ -64,7 +62,11 @@
             row.innerHTML = `
             <td>${prod.name}</td>
             <td><input type="number" min="1" value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
-            <td>${prod.price.toFixed(2)}</td>
+            <td><input type="number" min="0"
+                       name="prod_price"
+                       value="${prod.price.toFixed(2)}"
+                       class="form-control form-control-sm prod_price_input"
+                       data-id="${id}"></td>
             <td>${prod.gst}%</td>
             <td>${(prod.price * prod.quantity).toFixed(2)}</td>
             <td><button class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>

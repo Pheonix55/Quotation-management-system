@@ -48,6 +48,16 @@ class User extends Authenticatable
     }
     public function quotations()
     {
-        return $this->hasMany(Quotations::class, 'customer_id');
+        return $this->hasMany(Quotation::class, 'customer_id');
     }
+
+    public function quoteRequests()
+    {
+        return $this->hasMany(QuoteRequest::class);
+    }
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'customer_id');
+    }
+
 }

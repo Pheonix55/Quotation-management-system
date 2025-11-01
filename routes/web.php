@@ -5,47 +5,41 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\QuoteRequestController;
 use App\Http\Controllers\TermsController;
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\isCustomer;
 use Illuminate\Support\Facades\Route;
+Route::middleware('guest')->group(function () {
+    Route::get('/', [AuthController::class, 'loginPage'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('loginPost');
+    Route::get('/register', [AuthController::class, 'registerPage'])->name('registerView');
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->name('forget-password');
+});
 
-Route::get('/', [AuthController::class, 'loginPage'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('loginPost');
-Route::get('/register', [AuthController::class, 'registerPage'])->name('registerView');
-Route::post('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->name('forget-password');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
-
 /////////////////////////////////////////////////////
-Route::get('/get-a-quote', [DashboardController::class, 'getQuote'])->name('quote')->middleware(IsAdmin::class);
+Route::prefix('admin')->middleware([IsAdmin::class])->group(function () {
 
-Route::post('/get-a-quote/store', [DashboardController::class, 'storeQuoteStep1'])->name('quote.store')->middleware(IsAdmin::class);
+    Route::get('/get-a-quote', [DashboardController::class, 'getQuote'])->name('quote');
+    Route::post('/get-a-quote/store', [DashboardController::class, 'storeQuoteStep1'])->name('quote.store');
 
-Route::get('/quotation/{id}/add-products', [DashboardController::class, 'addProducts'])
-    ->name('quotation.addProducts')->middleware(IsAdmin::class);
+    Route::get('/quotation/{id}/add-products', [DashboardController::class, 'addProducts'])->name('quotation.addProducts');
+    Route::post('/quotation/{id}/save/products', [DashboardController::class, 'saveQuotationProducts'])->name('quotation.saveProducts');
 
+    Route::get('/quotation/{id}/completePage', [DashboardController::class, 'completeQuotationView'])->name('quotation.completeView');
+    Route::post('/quotation/{id}/complete', [DashboardController::class, 'completeQuotation'])->name('quotation.complete');
 
-Route::post('/quotation/{id}/save/products', [DashboardController::class, 'saveQuotationProducts'])
-    ->name('quotation.saveProducts')->middleware(IsAdmin::class);
-Route::get('/quotation/{id}/completePage', [DashboardController::class, 'completeQuotationView'])
-    ->name('quotation.completeView')->middleware(IsAdmin::class);
+    Route::get('/quotations/{id}/add-terms', [DashboardController::class, 'addTerms'])->name('quotations.addTerms');
+    Route::post('/quotations/{id}/store-terms', [DashboardController::class, 'storeTerms'])->name('quotations.storeTerms');
 
-Route::post('/quotation/{id}/complete', [DashboardController::class, 'completeQuotation'])
-    ->name('quotation.complete')->middleware(IsAdmin::class);
-Route::get('/quotations/{id}/add-terms', [DashboardController::class, 'addTerms'])->name('quotations.addTerms')->middleware(IsAdmin::class);
-
-Route::post('/quotations/{id}/store-terms', [DashboardController::class, 'storeTerms'])->name('quotations.storeTerms')->middleware(IsAdmin::class);
-
-Route::get('/quotations/{id}/show', [DashboardController::class, 'show'])->name('quotations.show')->middleware(IsAdmin::class);
-
-Route::get('/quotations/{quotation}/download-pdf', [DashboardController::class, 'downloadPdf'])
-    ->name('quotations.download-pdf')->middleware(IsAdmin::class);
-
-Route::get('/quotations/{quotation}/view-pdf', [DashboardController::class, 'viewPdf'])
-    ->name('quotations.view-pdf')->middleware(IsAdmin::class);
-
+    Route::get('/quotations/{id}/show', [DashboardController::class, 'show'])->name('quotations.show');
+    Route::get('/quotations/{quotation}/download-pdf', [DashboardController::class, 'downloadPdf'])->name('quotations.download-pdf');
+    Route::get('/quotations/{quotation}/view-pdf', [DashboardController::class, 'viewPdf'])->name('quotations.view-pdf');
+});
 
 /////////////////////////////////////////////////////////////////////
 
@@ -87,4 +81,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/category/create', [CategoryController::class, 'create'])->name('category.create');
     Route::put('/category/update/{id}', [CategoryController::class, 'update'])->name('category.update');
     Route::delete('/category/delete', [CategoryController::class, 'destroy'])->name('category.destroy');
+});
+
+
+//////////////////////////////////
+// routes/web.php
+Route::middleware([isCustomer::class])->group(function () {
+    Route::get('/request-a-quote', [QuoteRequestController::class, 'create'])->name('quote.request.create');
+    Route::post('/request-a-quote/store', [QuoteRequestController::class, 'store'])->name('quote.request.store');
 });

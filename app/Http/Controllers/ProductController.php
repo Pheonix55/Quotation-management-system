@@ -37,7 +37,8 @@ class ProductController extends Controller
             $data['customer_id'] = Auth::user()->id;
             $product = Product::create($data);
             // dd($request->all(), $data, $product);
-            return redirect()->route('product.index')->with('success', 'product created successfully');
+            $redirect = $request->input('redirect_route') ?? route('product.index');
+            return redirect($redirect)->with('success', 'product created successfully');
         } catch (Throwable $th) {
             dd($th->getMessage());
         }

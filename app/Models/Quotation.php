@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Quotations extends Model
+class Quotation extends Model
 {
     protected $fillable = [
         'customer_id',
@@ -14,8 +14,14 @@ class Quotations extends Model
         'notes',
         'total',
         'is_completed',
-        'product_ids'
+        'product_ids',
+        'created_by',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
@@ -29,5 +35,12 @@ class Quotations extends Model
     public function quotationTerms()
     {
         return $this->belongsToMany(QuotationTerm::class, 'quotation_term', 'quotation_id', 'term_id');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'quotation_product')
+            ->withPivot('quantity', 'price', 'total')
+            ->withTimestamps();
     }
 }

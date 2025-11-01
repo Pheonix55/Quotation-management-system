@@ -36,18 +36,14 @@
 
         <form action="{{ route('quotation.saveProducts', $quotation->id) }}" method="POST" id="addProductsForm">
             @csrf
-
             <div class="row mb-3">
-
-
-
             </div>
-
             <div class="row mb-3">
 
                 <div class="col-md-8">
                     <label for="productSelect" class="form-label">Select Products</label>
                     <select class="form-select" id="productSelect" multiple>
+
                         @foreach ($products as $product)
                             <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}"
                                 data-gst="{{ $product->gst }}">
@@ -81,52 +77,166 @@
         </form>
     </div>
 
-    {{-- <script>
-        const searchInput = document.getElementById('productSearch');
-        const productSelect = document.getElementById('productSelect');
-        let searchTimeout = null;
-
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-
-
-                fetch(`/search-products?q=${encodeURIComponent(query)}`, {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-
-                    .then(res => res.json())
-                    .then(products => {
-                        productSelect.innerHTML = '';
-                        if (products.length === 0) {
-                            const option = document.createElement('option');
-                            option.textContent = 'No products found';
-                            option.disabled = true;
-                            productSelect.appendChild(option);
-                            return;
-                        }
-
-                        products.forEach(p => {
-                            const option = document.createElement('option');
-                            option.value = p.id;
-                            option.textContent =
-                                `${p.name} `;
-                            option.dataset.price = p.sale_price;
-                            option.dataset.gst = p.gst;
-                            productSelect.appendChild(option);
-                        });
-                    })
-                    .catch(err => console.error('Error fetching products:', err));
-            }, 400);
-
-        });
-    </script> --}}
-
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const productSelect = document.getElementById('productSelect');
+            const tableBody = document.querySelector('#selectedProductsTable tbody');
+            const hiddenInput = document.getElementById('selected_products');
+            const form = document.getElementById('addProductsForm');
+            let selectedProducts = {};
+
+            productSelect.addEventListener('change', () => {
+                const options = Array.from(productSelect.selectedOptions);
+                options.forEach(option => {
+                    const id = option.value;
+                    const name = option.textContent;
+                    const price = parseFloat(option.dataset.price);
+                    const gst = option.getAttribute('data-gst');
+                    const total = 0
+                    console.log('Selected option:', option, 'Parsed price:', option.dataset.price);
+                    alert('stop');
+                    if (!selectedProducts[id]) {
+                        selectedProducts[id] = {
+                            name,
+                            quantity: 1,
+                            price,
+                            gst,
+                            total
+                        };
+                        renderTable();
+                    }
+                });
+            });
+
+
+            function renderTable() {
+                tableBody.innerHTML = '';
+
+                Object.entries(selectedProducts).forEach(([id, prod]) => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-prod-id', id);
+
+                    row.innerHTML = `
+            <td>${prod.name}</td>
+            <td>
+                <input type="number" min="1"
+                       name="prod_quantity"
+                       value="${prod.quantity}"
+                       class="form-control form-control-sm prod_quantity_input"
+                       data-id="${id}">
+            </td>
+            <td>
+                <input type="number" min="0"
+                       name="prod_price"
+                       value="${prod.price.toFixed(2)}"
+                       class="form-control form-control-sm prod_price_input"
+                       data-id="${id}">
+            </td>
+            <td>${prod.gst}%</td>
+            <td class="total-col">${(prod.price * prod.quantity).toFixed(2)}</td>
+            <td><button type="button" class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
+        `;
+                    tableBody.appendChild(row);
+                });
+
+                updateHiddenInput();
+            }
+
+
+            // ✅ Update total dynamically for both quantity and price edits
+            tableBody.addEventListener('input', e => {
+                const id = e.target.dataset.id;
+                const row = e.target.closest('tr');
+                if (!row || !id) return;
+
+                if (e.target.classList.contains('prod_quantity_input')) {
+                    const qty = parseInt(e.target.value);
+                    if (qty > 0) {
+                        selectedProducts[id].quantity = qty;
+                    }
+                }
+
+                if (e.target.classList.contains('prod_price_input')) {
+                    const price = parseFloat(e.target.value);
+                    if (price >= 0) {
+                        selectedProducts[id].price = price;
+                    }
+                }
+
+                const total = (selectedProducts[id].price * selectedProducts[id].quantity).toFixed(2);
+                selectedProducts[id].total = total;
+                row.querySelector('.total-col').textContent = total;
+
+                updateHiddenInput();
+            });
+
+
+            // ✅ delete row from DOM only
+            tableBody.addEventListener('click', e => {
+                if (e.target.classList.contains('remove-btn')) {
+                    const id = e.target.dataset.id;
+
+                    delete selectedProducts[id];
+
+                    const row = e.target.closest('tr');
+                    if (row) row.remove();
+
+                    updateHiddenInput();
+                }
+            });
+
+            function updateHiddenInput() {
+                hiddenInput.value = JSON.stringify(selectedProducts);
+            }
+
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                const rows = document.querySelectorAll('#selectedProductsTable tbody tr');
+                const qty = document.querySelectorAll('.prod_quantity_input');
+                const formData = new FormData(form);
+                const quantity = [];
+
+                qty.forEach(qty => {
+                    console.log(qty.value);
+                    formData.append('quantity[]', qty.value);
+
+                })
+                rows.forEach(row => {
+                    const prodId = row.getAttribute('data-prod-id');
+                    const total = row.querySelector('.total-col').textContent;
+                    const price = row.querySelector('.prod_price_input').value;
+
+                    formData.append('product_ids[]', prodId);
+                    formData.append('total[]', total);
+                    formData.append('price[]', price);
+                });
+
+
+                fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirectRoute;
+                        } else {
+                            alert('Something went wrong.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Failed to save quotation products.');
+                    });
+            });
+        });
+    </script>
+@endsection
+{{-- <script>
         const searchInput = document.getElementById('productSearch');
         const productSelect = document.getElementById('productSelect');
         let searchTimeout = null;
@@ -189,185 +299,4 @@
                 }
             }
         });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const productSelect = document.getElementById('productSelect');
-            const tableBody = document.querySelector('#selectedProductsTable tbody');
-            const hiddenInput = document.getElementById('selected_products');
-            const form = document.getElementById('addProductsForm');
-            let selectedProducts = {};
-
-            productSelect.addEventListener('change', () => {
-                const options = Array.from(productSelect.selectedOptions);
-                options.forEach(option => {
-                    const id = option.value;
-                    const name = option.textContent;
-                    const price = parseFloat(option.dataset.price);
-                    const gst = option.getAttribute('data-gst');
-                    const total = 0
-                    if (!selectedProducts[id]) {
-                        selectedProducts[id] = {
-                            name,
-                            quantity: 1,
-                            price,
-                            gst,
-                            total
-                        };
-                        renderTable();
-                    }
-                });
-            });
-
-            // function renderTable() {
-            //     tableBody.innerHTML = '';
-            //     Object.entries(selectedProducts).forEach(([id, prod]) => {
-            //         const row = document.createElement('tr');
-            //         row.setAttribute('data-prod-id', id);
-            //         row.setAttribute('data-total',
-            //             (prod.price * prod.quantity).toFixed(2)
-            //         )
-
-            //         row.innerHTML = `
-        //     <td>${prod.name}</td>
-        //     <td><input type="number" min="1" name="prod_quantity" class="prod_quantity_input"  value="${prod.quantity}" class="form-control form-control-sm qty-input" data-id="${id}"></td>
-        //     <td>${prod.price.toFixed(2)}</td>
-        //     <td>${prod.gst}%</td>
-        //     <td>${(prod.price * prod.quantity).toFixed(2)}</td>
-        //     <td><button class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
-        // `;
-            //         tableBody.appendChild(row);
-            //     });
-            //     updateHiddenInput();
-            // }
-            function renderTable() {
-                tableBody.innerHTML = '';
-
-                Object.entries(selectedProducts).forEach(([id, prod]) => {
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-prod-id', id);
-                    row.setAttribute('data-total', (prod.price * prod.quantity).toFixed(2));
-
-                    row.innerHTML = `
-            <td>${prod.name}</td>
-            <td>
-                <input type="number" min="1" name="prod_quantity"
-                       value="${prod.quantity}"
-                       class="form-control form-control-sm prod_quantity_input"
-                       data-id="${id}">
-            </td>
-            <td>${prod.price.toFixed(2)}</td>
-            <td>${prod.gst}%</td>
-            <td class="total-col">${(prod.price * prod.quantity).toFixed(2)}</td>
-            <td><button type="button" class="btn btn-sm btn-danger remove-btn" data-id="${id}">×</button></td>
-        `;
-                    tableBody.appendChild(row);
-                });
-
-                updateHiddenInput();
-            }
-            // tableBody.addEventListener('input', e => {
-            //     if (e.target.classList.contains('qty-input')) {
-            //         const id = e.target.dataset.id;
-            //         const qty = parseInt(e.target.value);
-            //         if (qty > 0) {
-            //             selectedProducts[id].quantity = qty;
-            //             renderTable();
-            //         }
-            //     }
-            // });
-
-            // tableBody.addEventListener('click', e => {
-            //     if (e.target.classList.contains('remove-btn')) {
-            //         const id = e.target.dataset.id;
-            //         delete selectedProducts[id];
-
-            //         renderTable();
-            //     }
-            // });
-
-            // ✅ update total without full rerender
-            tableBody.addEventListener('input', e => {
-                if (e.target.classList.contains('prod_quantity_input')) {
-                    const id = e.target.dataset.id;
-                    const qty = parseInt(e.target.value);
-
-                    if (qty > 0) {
-                        selectedProducts[id].quantity = qty;
-
-                        // only update total cell, not entire table
-                        const row = e.target.closest('tr');
-                        const total = (selectedProducts[id].price * qty).toFixed(2);
-                        selectedProducts[id].total = total;
-                        row.querySelector('.total-col').textContent = total;
-
-                        updateHiddenInput();
-                    }
-                }
-            });
-
-            // ✅ delete row from DOM only
-            tableBody.addEventListener('click', e => {
-                if (e.target.classList.contains('remove-btn')) {
-                    const id = e.target.dataset.id;
-
-                    delete selectedProducts[id];
-
-                    const row = e.target.closest('tr');
-                    if (row) row.remove();
-
-                    updateHiddenInput();
-                }
-            });
-
-            function updateHiddenInput() {
-                hiddenInput.value = JSON.stringify(selectedProducts);
-            }
-
-            form.addEventListener('submit', e => {
-                e.preventDefault();
-                const rows = document.querySelectorAll('#selectedProductsTable tbody tr');
-                const qty = document.querySelectorAll('.prod_quantity_input');
-                const formData = new FormData(form);
-                const quantity = [];
-
-                qty.forEach(qty => {
-                    console.log(qty.value);
-                    formData.append('quantity[]', qty.value);
-
-                })
-                rows.forEach(row => {
-
-                    const prodId = row.getAttribute('data-prod-id');
-                    const total = row.getAttribute('data-total');
-
-                    formData.append('product_ids[]', prodId);
-                    formData.append('total[]', total);
-                    // alert('s')
-                });
-
-                fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.href = data.redirectRoute;
-                        } else {
-                            alert('Something went wrong.');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Failed to save quotation products.');
-                    });
-            });
-        });
-    </script>
-@endsection
+    </script> --}}

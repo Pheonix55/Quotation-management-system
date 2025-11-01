@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\quotations;
+use App\Models\Quotation;
 use App\Models\QuotationTerm;
 use App\Models\Terms;
 use App\Models\User;
@@ -19,8 +19,21 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('dashboard');
+        $user = Auth::user();
+
+        $quotations_not_complete = Quotation::where('created_by', $user->id)
+            ->where('is_completed', false)
+            ->orderByDesc('created_at')
+            ->get();
+        if ($quotations_not_complete->isEmpty()) {
+            return view('dashboard', [
+                'quotations_not_complete' => collect(),
+                'message' => 'You have no incomplete quotations at the moment.'
+            ]);
+        }
+        return view('dashboard', compact('quotations_not_complete'));
     }
+
     public function getQuote()
     {
         $customers = User::where('isCustomer', 1)->get();
@@ -28,42 +41,31 @@ class DashboardController extends Controller
     }
     public function storeQuoteStep1(Request $request)
     {
-        try {
-            $data = $request->validate([
-                'customer_id' => 'required|exists:users,id',
-                'quotation_date' => 'required|date',
-                'quotation_time' => 'required|date_format:H:i',
-                'validity_date' => 'required|date|after_or_equal:quotation_date',
-                'notes' => 'nullable|string|max:1000',
-                'total' => 'nullable|numeric|min:0',
-                'is_completed' => 'nullable|boolean',
-            ]);
+        $data = $request->validate([
+            'customer_id' => 'required|exists:users,id',
+            'quotation_date' => 'required|date',
+            'quotation_time' => 'required|date_format:H:i',
+            'validity_date' => 'required|date|after_or_equal:quotation_date',
+            'notes' => 'nullable|string|max:1000',
+            'total' => 'nullable|numeric|min:0',
+            'is_completed' => 'nullable|boolean',
+        ]);
 
-            $data['quantity'] = 0;
+        $data['quantity'] = 0;
+        $data['created_by'] = Auth::user()->id;
+        $quotation = Quotation::create($data);
 
-            $quotation = Quotations::create($data);
+        return redirect()
+            ->route('quotation.addProducts', ['id' => $quotation->id])
+            ->with('success', 'Quotation created successfully.');
 
-            return redirect()
-                ->route('quotation.addProducts', ['id' => $quotation->id])
-                ->with('success', 'Quotation created successfully.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()
-                ->withErrors($e->validator)
-                ->withInput();
-        } catch (\Throwable $th) {
-            \Log::error('Quote Step 1 Error: ' . $th->getMessage());
-
-            return back()
-                ->with('error', 'Something went wrong while saving the quotation. Please try again.')
-                ->withInput();
-        }
     }
 
     public function addProducts($id)
     {
         try {
-            $quotation = Quotations::find($id);
+            $quotation = Quotation::find($id);
 
             if (!$quotation) {
                 return redirect()
@@ -100,7 +102,6 @@ class DashboardController extends Controller
     public function saveQuotationProducts(Request $request, $id)
     {
         try {
-            // Validate input
             $validated = $request->validate([
                 'product_ids' => 'required|array|min:1',
                 'product_ids.*' => 'integer|exists:products,id',
@@ -110,24 +111,32 @@ class DashboardController extends Controller
                 'total.*' => 'numeric|min:0',
             ]);
 
-            $quotation = Quotations::findOrFail($id);
+            $quotation = Quotation::findOrFail($id);
 
+            // Get sale prices
             $salePrices = Product::whereIn('id', $validated['product_ids'])
                 ->pluck('sale_price', 'id')
                 ->toArray();
 
-            $orderedPrices = array_map(fn($pid) => $salePrices[$pid] ?? 0, $validated['product_ids']);
+            // Sync products to quotation
+            $syncData = [];
+            foreach ($validated['product_ids'] as $index => $productId) {
+                $price = $salePrices[$productId] ?? 0;
+                $quantity = $validated['quantity'][$index];
+                $total = $validated['total'][$index];
 
-            $quotation->update([
-                'product_ids' => json_encode($validated['product_ids']),
-                'quantity' => json_encode($validated['quantity']),
-                'total' => json_encode($validated['total']),
-                'price' => json_encode($orderedPrices),
-            ]);
+                $syncData[$productId] = [
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'total' => $total,
+                ];
+            }
+
+            $quotation->products()->sync($syncData);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Products have been added to the quotation successfully.',
+                'message' => 'Products successfully added to quotation.',
                 'redirectRoute' => route('quotation.completeView', $id),
             ], 200);
 
@@ -153,9 +162,10 @@ class DashboardController extends Controller
         }
     }
 
+
     public function completeQuotationView($id)
     {
-        $quotation = Quotations::find($id);
+        $quotation = Quotation::find($id);
 
         if ($quotation->is_completed) {
             return redirect()
@@ -168,7 +178,7 @@ class DashboardController extends Controller
     public function completeQuotation(Request $request)
     {
         $quotationId = session('quotation_id');
-        $quotation = Quotations::findOrFail($quotationId);
+        $quotation = Quotation::findOrFail($quotationId);
 
         $quotation->update(['status' => 'completed']);
 
@@ -179,7 +189,7 @@ class DashboardController extends Controller
 
     public function addTerms($quotationId)
     {
-        $quotation = Quotations::findOrFail($quotationId);
+        $quotation = Quotation::findOrFail($quotationId);
         $terms = Terms::where('customer_id', $quotation->customer_id)->get();
 
         return view('quotations.add-terms', compact('quotation', 'terms'));
@@ -187,7 +197,7 @@ class DashboardController extends Controller
     // public function storeTerms(Request $request, $quotationId)
     // {
     //     dd($request->all());
-    //     $quotation = Quotations::findOrFail($quotationId);
+    //     $quotation = Quotation::findOrFail($quotationId);
 
     //     $validated = $request->validate([
     //         'term_ids' => 'required|array',
@@ -212,7 +222,7 @@ class DashboardController extends Controller
 
     public function storeTerms(Request $request, $quotationId)
     {
-        $quotation = Quotations::findOrFail($quotationId);
+        $quotation = Quotation::findOrFail($quotationId);
 
         $validated = $request->validate([
             'term_ids' => 'required|array',
@@ -262,57 +272,23 @@ class DashboardController extends Controller
 
     public function show($id)
     {
-        $quotation = Quotations::findOrFail($id);
+        $quotation = Quotation::findOrFail($id);
         $prod_ids = json_decode($quotation->product_ids);
-        $quotation->load('customer');
+        $quotation->load('customer', 'products');
         $quotationTerms = QuotationTerm::where('quotation_id', $quotation->id)->get();
-        $total = is_string($quotation->total)
-            ? json_decode($quotation->total, true)
-            : $quotation->total;
-        foreach ($prod_ids as $pid) {
-            $newproducts[] = Product::where('id', $pid)->first();
-        }
-        $iteration = 0;
-        $products = [];
-
-        foreach ($newproducts as $prod) {
-            $products[] = [
-                'product' => $prod,
-                'total' => $total[$iteration]
-            ];
-            $iteration++;
-        }
-        return view('quotations.quote', compact('quotation', 'products', 'quotationTerms', 'id'));
+        // dd($quotation);
+        return view('quotations.quote', compact('quotation', 'quotationTerms', 'id'));
     }
 
-    public function downloadPdf(quotations $quotation)
+    public function downloadPdf(Quotation $quotation)
     {
-        $quotation->load('customer');
+        $quotation->load('customer', 'products');
         $prod_ids = json_decode($quotation->product_ids);
         $quotationTerms = QuotationTerm::where('quotation_id', $quotation->id)->get();
 
-        foreach ($prod_ids as $Pid) {
-            $products[] = Product::where('id', $Pid)->first();
-        }
 
-        $total = is_string($quotation->total)
-            ? json_decode($quotation->total, true)
-            : $quotation->total;
-        foreach ($prod_ids as $id) {
-            $newproducts[] = Product::where('id', $id)->first();
-        }
-        $iteration = 0;
-        $products = [];
 
-        foreach ($newproducts as $prod) {
-            $products[] = [
-                'product' => $prod,
-                'total' => $total[$iteration]
-            ];
-            $iteration++;
-        }
-
-        return Pdf::view('quotations.quotation_print', compact('quotation', 'products', 'quotationTerms'))
+        return Pdf::view('quotations.quotation_print', compact('quotation', 'quotationTerms'))
             ->format('a4')
             ->name("quotation-{$quotation->id}.pdf")
             ->download();
@@ -321,7 +297,7 @@ class DashboardController extends Controller
     public function viewPdf($id)
     {
         // dd($id);
-        $quotation = Quotations::findOrFail($id);
+        $quotation = Quotation::findOrFail($id);
         $prod_ids = json_decode($quotation->product_ids);
         $quotation->load('customer');
         $quotationTerms = QuotationTerm::where('quotation_id', $quotation->id)->get();
@@ -351,7 +327,7 @@ class DashboardController extends Controller
 
     // public function ViewPdf($id)
     // {
-    //     $quotation = Quotations::findOrFail($id);
+    //     $quotation = Quotation::findOrFail($id);
     //     $prod_ids = json_decode($quotation->product_ids);
     //     $quotation->load('customer');
     //     $quotationTerms = QuotationTerm::where('quotation_id', $quotation->id)->get();

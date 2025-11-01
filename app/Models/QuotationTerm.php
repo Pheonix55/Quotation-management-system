@@ -11,6 +11,6 @@ class QuotationTerm extends Model
     protected $table = 'quotation_term';
     public function quotations()
     {
-        return $this->belongsToMany(Quotations::class, 'quotation_term', 'term_id', 'quotation_id');
+        return $this->belongsToMany(Quotation::class, 'quotation_term', 'term_id', 'quotation_id');
     }
 }

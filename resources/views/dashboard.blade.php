@@ -54,41 +54,80 @@
             color: #fff;
         }
 
-        .card-container {
+        .wrapper_cards {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80vh;
-            flex-direction: column;
+            align-items: stretch;
         }
     </style>
 
-    <div class="container card-container">
-
+    <div class="container py-5">
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show w-100 text-center mb-4" role="alert">
+            <div class="alert alert-success alert-dismissible fade show text-center mb-4" role="alert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show w-100 text-center mb-4" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show text-center mb-4" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
-        <div class="quote-card">
-            <a href="{{ route('quote') }}">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Get a Quote</h5>
-                    <p class="card-text">
-                        Add your products and terms to generate a customized quotation instantly.
-                    </p>
-                    <span class="quote-btn">Create Quotation</span>
+        @admin
+            <div class="row g-4 justify-content-center wrapper_cards">
+                <div class="col-md-4 col-sm-6">
+                    <div class="quote-card h-100">
+                        <a href="{{ route('quote') }}">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Get a Quote</h5>
+                                <p class="card-text">Add your products and terms to generate a customized quotation instantly.
+                                </p>
+                                <span class="quote-btn">Create Quotation</span>
+                            </div>
+                        </a>
+                    </div>
                 </div>
-            </a>
-        </div>
+
+                @foreach ($quotations_not_complete as $quotation)
+                    @if ($quotation->status == 0)
+                        <div class="col-md-4 col-sm-6">
+                            <div class="quote-card h-100">
+                                <a href="{{ route('quotation.addProducts', $quotation->id) }}">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Quotation #{{ $quotation->id }}</h5>
+                                        <p class="card-text mb-1"><strong>Date:</strong> {{ $quotation->quotation_date }}</p>
+                                        <p class="card-text mb-1"><strong>Customer:</strong>
+                                            {{ $quotation->customer->name ?? 'N/A' }}</p>
+                                        <p class="card-text mb-1"><strong>Validity:</strong> {{ $quotation->validity_date }}</p>
+                                        <p class="card-text">
+                                            <span class="badge bg-warning text-dark">Incomplete</span>
+                                        </p>
+                                        <span class="quote-btn">Continue</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        @endadmin
+        @customer
+            <div class="row g-4 justify-content-center wrapper_cards">
+                <div class="col-md-4 col-sm-6">
+                    <div class="quote-card h-100">
+                        <a href="{{ route('quote.request.create') }}">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Request a Quote</h5>
+                                <p class="card-text">Add your products and terms to generate a customized quotation instantly.
+                                </p>
+                                <span class="quote-btn">Create Quotation request</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endcustomer
     </div>
 @endsection

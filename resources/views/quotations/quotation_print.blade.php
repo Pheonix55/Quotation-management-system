@@ -104,7 +104,7 @@
 
 <body>
     <div class="card p-4">
-    
+
         <div class="header">
             <div class="company-info">
                 <h1>Quotation Management System</h1>
@@ -160,21 +160,17 @@
                         $subtotal = 0;
                         $totalGst = 0;
 
-                        $quotation_price = json_decode($quotation->price, true);
-                        $quotation_qty = json_decode($quotation->quantity, true);
-
-                        $quotation_price = array_map(function ($p) {
-                            return is_array($p) ? (float) $p[0] : (float) $p;
-                        }, $quotation_price);
-
-                        $quotation_qty = array_map(function ($q) {
-                            return (int) $q;
-                        }, $quotation_qty);
+                        $quotation_price = [];
+                        $quotation_qty = [];
+                        foreach ($quotation->products as $prod) {
+                            $quotation_price[] = $prod->sale_price;
+                            $quotation_qty[] = $prod->pivot->quantity;
+                        }
                     @endphp
 
-                    @foreach ($products as $index => $item)
+                    @foreach ($quotation->products as $index => $product)
                         @php
-                            $product = $item['product'];
+
                             $price = $quotation_price[$index] ?? 0;
                             $qty = $quotation_qty[$index] ?? 0;
                             $amount = $price * $qty;
