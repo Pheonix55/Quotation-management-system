@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\QuotationTerm;
+use App\Models\QuoteRequest;
 use App\Models\Terms;
 use App\Models\User;
 use Auth;
@@ -25,13 +26,32 @@ class DashboardController extends Controller
             ->where('is_completed', false)
             ->orderByDesc('created_at')
             ->get();
-        if ($quotations_not_complete->isEmpty()) {
-            return view('dashboard', [
-                'quotations_not_complete' => collect(),
-                'message' => 'You have no incomplete quotations at the moment.'
-            ]);
+
+        if ($user->isCustomer) {
+            $quoteRequests = $user->quoteRequests()->with('products')->latest()->paginate(15);
+            return view('customer-dashboard', compact('quoteRequests'));
+        } else {
+            $quoteRequests = QuoteRequest::where('status', '!=', \App\QuotationStatus::Quoted)
+                ->with('products', 'user')
+                ->latest()
+                ->paginate(10);
+
+            return view('dashboard', compact('quotations_not_complete', 'quoteRequests'));
         }
-        return view('dashboard', compact('quotations_not_complete'));
+    }
+
+    public function getQuotes(Request $request)
+    {
+        $query = QuoteRequest::where('user_id', auth()->id());
+
+        if ($search = $request->get('search')) {
+            $query->where('status', 'like', "%$search%")
+                ->orWhereDate('created_at', $search);
+        }
+
+        $quoteRequests = $query->with('products')->latest()->paginate(10);
+
+        return view('customer-dashboard', compact('quoteRequests'));
     }
 
     public function getQuote()

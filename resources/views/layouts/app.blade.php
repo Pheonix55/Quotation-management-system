@@ -14,7 +14,9 @@
     {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" /> --}}
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    @livewireStyles
 
 
 
@@ -322,6 +324,15 @@
         }
     </style>
 
+    <style>
+        .navbar img {
+            object-fit: cover;
+        }
+
+        .dropdown-menu {
+            min-width: 250px;
+        }
+    </style>
 
 </head>
 
@@ -388,10 +399,63 @@
         </ul>
     </nav>
     <main>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 py-3">
+            <div class="container-fluid">
+                {{-- Left side: Dynamic title --}}
+                <h4 class="mb-0 fw-semibold text-primary">
+                    @yield('page_title', 'Dashboard')
+                </h4>
+
+                {{-- Right side --}}
+                <div class="d-flex align-items-center ms-auto">
+                    {{-- Notification bell --}}
+                    <div class="dropdown me-4">
+                        <a href="#" class="text-decoration-none text-dark position-relative" id="notifDropdown"
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell fs-4"></i>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                3
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown">
+                            <li class="dropdown-header fw-semibold">Notifications</li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">New quotation request received</a></li>
+                            <li><a class="dropdown-item" href="#">Quotation #102 updated</a></li>
+                            <li><a class="dropdown-item" href="#">Your profile was viewed</a></li>
+                        </ul>
+                    </div>
+
+                    {{-- User Profile --}}
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none" id="profileDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ Auth::user()->profile_picture ?? asset('images/profile.jpg') }}" alt="Profile"
+                                class="rounded-circle me-2" width="40" height="40">
+                            <span class="fw-semibold text-dark">{{ Auth::user()->name }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item" href="#">View Profile</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                @csrf
+                                <a class="dropdown-item text-danger" href="{{ route('logout') }}">Logout</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
         @yield('content')
 
     </main>
-
     <script>
         setTimeout(() => {
             const alert = document.querySelector('.alert');
@@ -457,6 +521,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 
+    @livewireScripts
     @include('partials.toaster_config')
     @include('partials.select2')
 

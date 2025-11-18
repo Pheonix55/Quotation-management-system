@@ -85,8 +85,10 @@ Route::middleware(['auth'])->group(function () {
 
 
 //////////////////////////////////
-// routes/web.php
 Route::middleware([isCustomer::class])->group(function () {
     Route::get('/request-a-quote', [QuoteRequestController::class, 'create'])->name('quote.request.create');
+    Route::get('/quote/{id}', [QuoteRequestController::class, 'show'])->name('quote.request.show');
+    Route::get('/quote-success', [QuoteRequestController::class, 'success'])->name('quote.request.success');
     Route::post('/request-a-quote/store', [QuoteRequestController::class, 'store'])->name('quote.request.store');
+    Route::get('/quote/requests', [DashboardController::class, 'getQuotes'])->name('quote.requests');
 });

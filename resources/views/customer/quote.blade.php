@@ -74,14 +74,16 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label>Select Products</label>
-                    <select name="product_ids[]" multiple class="form-control">
+                    <label for="product_ids" class="form-label">Select Products</label>
+                    <select name="product_ids[]" id="product_ids" class="form-control select2" multiple="multiple" required>
                         @foreach ($products as $product)
-                            <option value="{{ $product->id }}">{{ $product->name }} (Rs. {{ $product->sale_price }})
+                            <option value="{{ $product->id }}">
+                                {{ $product->name }} (Rs. {{ number_format($product->sale_price, 2) }})
                             </option>
                         @endforeach
                     </select>
                 </div>
+
 
                 <div class="mb-3">
                     <label>Additional Terms (optional)</label>
@@ -92,11 +94,30 @@
             </form>
         @endif
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    @include('partials.select2-config')
     <script>
-        const barcodeInput = document.getElementById('barcode');
+        document.addEventListener("DOMContentLoaded", function() {
 
-        barcodeInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase();
+            const barcodeInput = document.getElementById('barcode');
+
+            barcodeInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
         });
     </script>
+    <script>
+        $(document).ready(function() {
+            $('#product_ids').select2({
+                placeholder: "Select one or more products",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
+    </script>
+
 @endsection
