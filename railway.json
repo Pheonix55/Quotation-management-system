@@ -1,7 +1,7 @@
 {
     "build": {
         "builder": "NIXPACKS",
-        "buildCommand": "composer install --no-dev --optimize-autoloader && php artisan key:generate && php artisan config:cache && php artisan route:cache && php artisan storage:link && npm ci && npm run build"
+        "buildCommand": "./build.sh"
     },
     "deploy": {
         "startCommand": "php artisan serve --host=0.0.0.0 --port=$PORT"
@@ -12,7 +12,6 @@
         "LOG_CHANNEL": "stderr",
         "DB_CONNECTION": "mysql",
         "PORT": "8080",
-        "NODE_VERSION": "20",
-        "NPM_FLAGS": "--legacy-peer-deps"
+        "NODE_VERSION": "20"
     }
 }
