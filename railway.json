@@ -22,7 +22,6 @@
         "APP_DEBUG": "false",
         "LOG_CHANNEL": "stderr",
         "DB_CONNECTION": "mysql",
-        "PORT": "8080"
-  
+        "PORT": "8080"
     }
 }
