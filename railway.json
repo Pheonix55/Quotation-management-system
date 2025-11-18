@@ -1,0 +1,28 @@
+{
+    "$schema": "https://railway.com/railway.schema.json",
+    "build": {
+        "builder": "RAILPACK",
+        "buildCommand": "composer install --no-dev --optimize-autoloader && php artisan key:generate && php artisan config:cache && php artisan route:cache && npm install && npm run build && php artisan storage:link"
+    },
+    "deploy": {
+        "runtime": "V2",
+        "numReplicas": 1,
+        "sleepApplication": false,
+        "useLegacyStacker": false,
+        "multiRegionConfig": {
+            "us-west2": {
+                "numReplicas": 1
+            }
+        },
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    },
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "LOG_CHANNEL": "stderr",
+        "DB_CONNECTION": "mysql",
+        "PORT": "8080"
+  
+    }
+}
