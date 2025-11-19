@@ -17,10 +17,11 @@
                 <div class="col-md-6 mb-3">
                     <label for="customers" class="form-label">Select Customer</label>
                     <select name="customer_id" id="customers" class="form-select @error('customer_id') is-invalid @enderror"
-                        required>
-                        <option disabled selected>Select</option>
+                        {{ $selectedCustomer ? 'disabled' : '' }} {{-- Disable if preselected --}} required>
+                        <option disabled {{ !$selectedCustomer ? 'selected' : '' }}>Select</option>
                         @foreach ($customers as $customer)
-                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                            <option value="{{ $customer->id }}"
+                                {{ old('customer_id', $selectedCustomer->id ?? '') == $customer->id ? 'selected' : '' }}>
                                 {{ $customer->name }}
                             </option>
                         @endforeach
@@ -28,7 +29,13 @@
                     @error('customer_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+
+                    @if ($selectedCustomer)
+                        {{-- Hidden input to submit the value even if select is disabled --}}
+                        <input type="hidden" name="customer_id" value="{{ $selectedCustomer->id }}">
+                    @endif
                 </div>
+
 
                 {{-- Date --}}
                 <div class="col-md-6 mb-3">

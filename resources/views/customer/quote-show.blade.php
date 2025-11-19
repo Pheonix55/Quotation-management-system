@@ -53,6 +53,9 @@
             {{-- Actions --}}
             <div class="mt-4">
                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">Back to Quotes</a>
+                <a href="{{ route('quote.request.start', [$quote->user->id, $quote->id]) }}"
+                    class="btn btn-outline-danger">Start the
+                    quote</a>
                 @if ($quote->status === \App\QuotationStatus::Quoted)
                     <a href="{{ route('quotations.download-pdf', $quote->id) }}" class="btn btn-success">Download PDF</a>
                 @endif

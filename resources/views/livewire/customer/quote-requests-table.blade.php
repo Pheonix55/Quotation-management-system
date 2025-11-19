@@ -4,7 +4,7 @@
     <div class="quote-toolbar">
         <div class="quote-search">
             {{-- <input type="text" wire:model.debounce.300ms="search" placeholder="Search by status or date..."> --}}
-            <input type="text" wire:model.live="search" placeholder="Search...">
+            <input type="text" wire:model.live="search" placeholder="Search by status or date...">
 
         </div>
 
@@ -69,8 +69,11 @@
                         </td>
                         <td>
                             <a href="{{ route('quote.request.show', $request->id) }}"
-                                class="btn btn-outline-light btn-sm">View</a>
-                            @if ($request->status === \App\QuotationStatus::Quoted)
+                                class="btn btn-outline-dark btn-sm">View</a>
+                            @if ($request->status != \App\QuotationStatus::Quoted)
+                                <a href="{{ route('quotations.edit', $request->id) }}"
+                                    class="btn btn-outline-success btn-sm">edit</a>
+                            @elseif ($request->status === \App\QuotationStatus::Quoted)
                                 <a href="{{ route('quotations.download-pdf', $request->id) }}"
                                     class="btn btn-success btn-sm">Download</a>
                             @endif
@@ -80,7 +83,7 @@
             </tbody>
         </table>
 
-        <div class="mt-3">
+        <div class="mt-3 ">
             {{ $quoteRequests->links() }}
         </div>
     @endif

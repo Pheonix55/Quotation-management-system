@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\QuoteRequest;
 use App\QuotationStatus;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class QuoteRequestController extends Controller
@@ -23,18 +24,20 @@ class QuoteRequestController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
         $request->validate([
             'product_ids' => 'required|array|min:1',
             'terms' => 'nullable|string',
         ]);
 
         $quoteRequest = QuoteRequest::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'status' => QuotationStatus::Submitted,
         ]);
 
         $quoteRequest->products()->sync($request->product_ids);
         // dd($quoteRequest->products);
+        NotificationService::push('info', 'new Quotation request from ' . $user->name, adminUser());
 
         return redirect()->route('quote.request.success')->with('success', 'Your quote request has been submitted.');
     }
@@ -44,6 +47,7 @@ class QuoteRequestController extends Controller
         $quote = QuoteRequest::with('user', 'products')->where('id', $id)->first();
         return view('customer.quote-show', compact('quote'));
     }
+   
     public function success()
     {
         return view('customer.quote-success');

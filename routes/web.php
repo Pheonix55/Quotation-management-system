@@ -27,7 +27,7 @@ Route::prefix('admin')->middleware([IsAdmin::class])->group(function () {
     Route::get('/get-a-quote', [DashboardController::class, 'getQuote'])->name('quote');
     Route::post('/get-a-quote/store', [DashboardController::class, 'storeQuoteStep1'])->name('quote.store');
 
-    Route::get('/quotation/{id}/add-products', [DashboardController::class, 'addProducts'])->name('quotation.addProducts');
+    Route::get('/quotation/{id}/add-products/{quoteRequestId}', [DashboardController::class, 'addProducts'])->name('quotation.addProducts');
     Route::post('/quotation/{id}/save/products', [DashboardController::class, 'saveQuotationProducts'])->name('quotation.saveProducts');
 
     Route::get('/quotation/{id}/completePage', [DashboardController::class, 'completeQuotationView'])->name('quotation.completeView');
@@ -36,10 +36,11 @@ Route::prefix('admin')->middleware([IsAdmin::class])->group(function () {
     Route::get('/quotations/{id}/add-terms', [DashboardController::class, 'addTerms'])->name('quotations.addTerms');
     Route::post('/quotations/{id}/store-terms', [DashboardController::class, 'storeTerms'])->name('quotations.storeTerms');
 
-    Route::get('/quotations/{id}/show', [DashboardController::class, 'show'])->name('quotations.show');
-    Route::get('/quotations/{quotation}/download-pdf', [DashboardController::class, 'downloadPdf'])->name('quotations.download-pdf');
-    Route::get('/quotations/{quotation}/view-pdf', [DashboardController::class, 'viewPdf'])->name('quotations.view-pdf');
 });
+Route::get('/quotations/{id}/edit', [DashboardController::class, 'edit'])->name('quotations.edit');
+Route::get('/quotations/{id}/show', [DashboardController::class, 'show'])->name('quotations.show');
+Route::get('/quotations/{quotation}/download-pdf', [DashboardController::class, 'downloadPdf'])->name('quotations.download-pdf');
+Route::get('/quotations/{quotation}/view-pdf', [DashboardController::class, 'viewPdf'])->name('quotations.view-pdf');
 
 /////////////////////////////////////////////////////////////////////
 
@@ -81,14 +82,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/category/create', [CategoryController::class, 'create'])->name('category.create');
     Route::put('/category/update/{id}', [CategoryController::class, 'update'])->name('category.update');
     Route::delete('/category/delete', [CategoryController::class, 'destroy'])->name('category.destroy');
+    Route::get('/quote/{id}', [QuoteRequestController::class, 'show'])->name('quote.request.show');
+    Route::get('/quote/{id}/start', [DashboardController::class, 'getQuote'])->name('quote.request.start');
 });
 
 
 //////////////////////////////////
 Route::middleware([isCustomer::class])->group(function () {
     Route::get('/request-a-quote', [QuoteRequestController::class, 'create'])->name('quote.request.create');
-    Route::get('/quote/{id}', [QuoteRequestController::class, 'show'])->name('quote.request.show');
     Route::get('/quote-success', [QuoteRequestController::class, 'success'])->name('quote.request.success');
     Route::post('/request-a-quote/store', [QuoteRequestController::class, 'store'])->name('quote.request.store');
     Route::get('/quote/requests', [DashboardController::class, 'getQuotes'])->name('quote.requests');
+});
+Route::post('/notifications/read/{id}', function ($id) {
+    auth()->user()->notifications()->find($id)->markAsRead();
+    return back();
 });

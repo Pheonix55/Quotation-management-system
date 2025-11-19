@@ -409,7 +409,8 @@
                 {{-- Right side --}}
                 <div class="d-flex align-items-center ms-auto">
                     {{-- Notification bell --}}
-                    <div class="dropdown me-4">
+                    <livewire:navbar-notifications />
+                    {{-- <div class="dropdown me-4">
                         <a href="#" class="text-decoration-none text-dark position-relative" id="notifDropdown"
                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-4"></i>
@@ -419,15 +420,17 @@
                             </span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown">
-                            <li class="dropdown-header fw-semibold">Notifications</li>
-                            <li>
+
+
+
+                            {{-- <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item" href="#">New quotation request received</a></li>
                             <li><a class="dropdown-item" href="#">Quotation #102 updated</a></li>
                             <li><a class="dropdown-item" href="#">Your profile was viewed</a></li>
                         </ul>
-                    </div>
+                    </div> --}}
 
                     {{-- User Profile --}}
                     <div class="dropdown">
@@ -456,6 +459,26 @@
         @yield('content')
 
     </main>
+    <script>
+        Echo.private(`notifications.${window.userId}`)
+            .listen('AppNotificationEvent', (e) => {
+
+                // Update the count (example: +1)
+                const badge = document.querySelector('#notifToggle span');
+                if (badge) {
+                    badge.innerText = parseInt(badge.innerText) + 1;
+                }
+
+                // Add the new notification to the dropdown
+                const menu = document.querySelector('#notifMenu');
+                menu.insertAdjacentHTML('afterbegin', `
+            <div class="p-3 border-b hover:bg-gray-100 cursor-pointer">
+                <p class="text-sm font-medium">${e.message}</p>
+                <p class="text-xs text-gray-500">just now</p>
+            </div>
+        `);
+            });
+    </script>
     <script>
         setTimeout(() => {
             const alert = document.querySelector('.alert');

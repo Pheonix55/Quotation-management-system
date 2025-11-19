@@ -73,6 +73,7 @@
                                         <td>
                                             <a href="{{ route('quote.request.show', $quote->id) }}"
                                                 class="btn btn-sm btn-primary">View</a>
+
                                         </td>
                                     </tr>
                                 @endforeach
@@ -80,7 +81,7 @@
                         </table>
                     </div>
                     {{-- Pagination --}}
-                    <div class="mt-3">
+                    <div class="mt-3 paginationContainer">
                         {{ $quoteRequests->links() }}
                     </div>
                 @endif
@@ -90,6 +91,12 @@
 
     {{-- Optional card styling --}}
     <style>
+        .paginationContainer {
+            svg {
+                height: 50px;
+            }
+        }
+
         .quote-card {
             border-radius: 1rem;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);

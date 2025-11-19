@@ -160,8 +160,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <button class="btn btn-outline-info">
-        <a href="{{ route('quote.request.create') }}">Request a quote</a>
-    </button>
+    <a class="btn btn-outline-info" href="{{ route('quote.request.create') }}">Request a quote</a>
+
     @livewire('customer.quote-requests-table')
 @endsection
